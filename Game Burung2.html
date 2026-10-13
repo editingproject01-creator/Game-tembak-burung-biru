@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Game Burung</title>
+
+    <style>
+        body {
+            font-family: sans-serif;
+        }
+
+        .bold {
+            font-weight: bold;
+        }
+    </style>
+</head>
+<body>
+   <h1>Game Tembak Burung</h1> 
+    <p class="bold">Top Score: <span id="topScore"></span></p>
+    <p class="bold">Total Waktu: <span id="totalWaktu"></span></p>
+    <img id="bird">
+
+   <script>
+    var counter = 1;
+    var start = 0;
+    var end = 0;
+    var totalWaktu = 0;
+
+    // Tampilkan Top Score yang tersimpan saat halaman dimuat
+    tampilkanTopScore();
+
+    function tampilkanTopScore() {
+        var savedScore = localStorage.getItem("topScore");
+        if (savedScore !== null) {
+            document.getElementById("topScore").innerHTML = savedScore + " Detik";
+        }
+    }
+
+    tampilkanGambar();
+
+    function tampilkanGambar() {
+        let top = Math.random() * 400;
+        let left = Math.random() * 300;
+        
+        if (counter == 1) {
+            start = new Date().getTime();
+        }
+        
+        document.getElementById("bird").src = "bird.png";
+        document.getElementById("bird").style.height = "60px";
+        document.getElementById("bird").style.width = "60px";
+        document.getElementById("bird").style.top = top + "px";
+        document.getElementById("bird").style.left = left + "px";
+        document.getElementById("bird").style.position = "relative";
+        document.getElementById("bird").style.display = "block";
+    }
+
+    document.getElementById("bird").onclick = function () {
+        document.getElementById("bird").src = "bom.png";
+        document.getElementById("bird").style.height = "150px";
+        document.getElementById("bird").style.width = "150px";
+        setTimeout(sembunyikanGambar, 500);
+    
+        if (counter < 5) {
+            setTimeout(tampilkanGambar, 600);
+            counter++;
+        } else {
+            end = new Date().getTime();
+            
+            // Hitung total waktu (dibulatkan 2 desimal)
+            totalWaktu = parseFloat(((end - start) / 1000).toFixed(2));
+            document.getElementById("totalWaktu").innerHTML = totalWaktu + " Detik";
+            
+            // Jalankan logika perbarui top score
+            setTopscore();
+            
+            setTimeout(function() { alert("Selesai! Waktu kamu: " + totalWaktu + " detik."); }, 100);
+        }
+    }
+
+    function sembunyikanGambar() {
+        document.getElementById("bird").style.display = "none";
+    }
+
+    // FUNGSI UTAMA UNTUK UPDATE AUTOMATIS
+    function setTopscore() {
+        var topScoreLama = localStorage.getItem("topScore");
+
+        // Jika belum ada rekor ATAU totalWaktu baru lebih kecil (lebih cepat)
+        if (topScoreLama === null || totalWaktu < parseFloat(topScoreLama)) {
+            // Simpan nilai baru ke localStorage
+            localStorage.setItem("topScore", totalWaktu);
+            
+            // Langsung ganti teks di layar saat itu juga
+            document.getElementById("topScore").innerHTML = totalWaktu + " Detik";
+        }
+    }
+</script>
+</body>
+</html>
