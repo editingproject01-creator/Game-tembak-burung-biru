@@ -1,99 +1,254 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="id">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Game Burung</title>
+    <title>Game Tembak Burung Modern</title>
 
     <style>
-        body {
-            font-family: sans-serif;
+        :root {
+            --primary-color: #4ECDC4;
+            --accent-color: #FF6B6B;
+            --bg-color: #1A1A2E;
+            --card-bg: rgba(255, 255, 255, 0.1);
         }
 
-        .bold {
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            user-select: none;
+        }
+
+        body {
+            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            color: #fff;
+            overflow: hidden;
+        }
+
+        header {
+            margin-top: 20px;
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.2rem;
+            letter-spacing: 1.5px;
+            text-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            margin-bottom: 15px;
+            color: #FFE66D;
+        }
+
+        /* Dashboard Skor */
+        .scoreboard {
+            display: flex;
+            gap: 20px;
+            background: var(--card-bg);
+            padding: 12px 25px;
+            border-radius: 50px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+
+        .score-box {
+            font-size: 1rem;
+            font-weight: 600;
+        }
+
+        .score-box span {
+            color: var(--primary-color);
+            font-size: 1.1rem;
+        }
+
+        /* Area Arena Permainan */
+        #game-container {
+            position: relative;
+            width: 90vw;
+            max-width: 700px;
+            height: 60vh;
+            max-height: 500px;
+            margin-top: 25px;
+            background: rgba(255, 255, 255, 0.05);
+            border-radius: 20px;
+            border: 2px dashed rgba(255, 255, 255, 0.2);
+            overflow: hidden;
+            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
+            cursor: crosshair; /* Kursor berbentuk pembidik */
+        }
+
+        /* Styling Karakter Burung */
+        #bird {
+            position: absolute;
+            width: 65px;
+            height: 65px;
+            object-fit: contain;
+            cursor: pointer;
+            transition: transform 0.1s ease;
+            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.4));
+            display: none;
+        }
+
+        #bird:hover {
+            transform: scale(1.1);
+        }
+
+        #bird:active {
+            transform: scale(0.9);
+        }
+
+        /* Tombol Main / Reset */
+        .btn-restart {
+            margin-top: 20px;
+            padding: 12px 30px;
+            font-size: 1rem;
             font-weight: bold;
+            color: #fff;
+            background: linear-gradient(45deg, #FF6B6B, #FF8E53);
+            border: none;
+            border-radius: 25px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
+            transition: all 0.3s ease;
+        }
+
+        .btn-restart:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        }
+
+        /* Animasi Efek Meledak */
+        .explode {
+            animation: pop 0.3s ease-out forwards;
+        }
+
+        @keyframes pop {
+            0% { transform: scale(1); opacity: 1; }
+            50% { transform: scale(1.4); }
+            100% { transform: scale(1.6); opacity: 0; }
         }
     </style>
 </head>
 <body>
-   <h1>Game Tembak Burung</h1> 
-    <p class="bold">Top Score: <span id="topScore"></span></p>
-    <p class="bold">Total Waktu: <span id="totalWaktu"></span></p>
-    <img id="bird">
+
+    <header>
+        <h1>🎯 Game Tembak Burung</h1>
+        <div class="scoreboard">
+            <div class="score-box">Target: <span id="targetCount">0 / 5</span></div>
+            <div class="score-box">Top Score: <span id="topScore">-</span></div>
+            <div class="score-box">Waktu: <span id="totalWaktu">0s</span></div>
+        </div>
+    </header>
+
+    <!-- Container Terpisah untuk Menjaga Respon Sifat Responsif -->
+    <div id="game-container">
+        <img id="bird" alt="Target Burung">
+    </div>
+
+    <button class="btn-restart" onclick="mulaiGameUlang()">Mainkan Lagi 🔄</button>
 
    <script>
-    var counter = 1;
-    var start = 0;
-    var end = 0;
-    var totalWaktu = 0;
+    let counter = 0;
+    const maxTarget = 5;
+    let start = 0;
+    let end = 0;
+    let totalWaktu = 0;
+    let gameAktif = false;
 
-    // Tampilkan Top Score yang tersimpan saat halaman dimuat
+    const birdElement = document.getElementById("bird");
+    const container = document.getElementById("game-container");
+    const topScoreEl = document.getElementById("topScore");
+    const totalWaktuEl = document.getElementById("totalWaktu");
+    const targetCountEl = document.getElementById("targetCount");
+
+    // Muat Top Score saat halaman pertama dimuat
     tampilkanTopScore();
+    // Mulai permainan otomatis
+    mulaiGameUlang();
 
     function tampilkanTopScore() {
-        var savedScore = localStorage.getItem("topScore");
+        let savedScore = localStorage.getItem("topScore");
         if (savedScore !== null) {
-            document.getElementById("topScore").innerHTML = savedScore + " Detik";
+            topScoreEl.innerText = savedScore + " Detik";
+        } else {
+            topScoreEl.innerText = "-";
         }
     }
 
-    tampilkanGambar();
+    function mulaiGameUlang() {
+        counter = 0;
+        gameAktif = true;
+        totalWaktuEl.innerText = "0s";
+        targetCountEl.innerText = `0 / ${maxTarget}`;
+        tampilkanGambar();
+    }
 
     function tampilkanGambar() {
-        let top = Math.random() * 400;
-        let left = Math.random() * 300;
+        if (!gameAktif) return;
+
+        // Reset tampilan & gambar burung
+        birdElement.src = "bird.png";
+        birdElement.classList.remove("explode");
+        birdElement.style.width = "65px";
+        birdElement.style.height = "65px";
+
+        // Hitung batas posisi agar burung tidak keluar dari container (Sangat Responsif)
+        let containerWidth = container.clientWidth - 70;
+        let containerHeight = container.clientHeight - 70;
+
+        let top = Math.max(10, Math.random() * containerHeight);
+        let left = Math.max(10, Math.random() * containerWidth);
         
-        if (counter == 1) {
+        // Catat waktu mulai saat ronde pertama
+        if (counter === 0) {
             start = new Date().getTime();
         }
         
-        document.getElementById("bird").src = "bird.png";
-        document.getElementById("bird").style.height = "60px";
-        document.getElementById("bird").style.width = "60px";
-        document.getElementById("bird").style.top = top + "px";
-        document.getElementById("bird").style.left = left + "px";
-        document.getElementById("bird").style.position = "relative";
-        document.getElementById("bird").style.display = "block";
+        birdElement.style.top = top + "px";
+        birdElement.style.left = left + "px";
+        birdElement.style.display = "block";
     }
 
-    document.getElementById("bird").onclick = function () {
-        document.getElementById("bird").src = "bom.png";
-        document.getElementById("bird").style.height = "150px";
-        document.getElementById("bird").style.width = "150px";
-        setTimeout(sembunyikanGambar, 500);
-    
-        if (counter < 5) {
-            setTimeout(tampilkanGambar, 600);
-            counter++;
+    // Event ketika burung diklik/ditembak
+    birdElement.onclick = function () {
+        if (!gameAktif) return;
+
+        // Efek tembak/bom
+        birdElement.src = "bom.png";
+        birdElement.classList.add("explode");
+
+        counter++;
+        targetCountEl.innerText = `${counter} / ${maxTarget}`;
+
+        if (counter < maxTarget) {
+            setTimeout(tampilkanGambar, 400);
         } else {
+            gameAktif = false;
             end = new Date().getTime();
             
-            // Hitung total waktu (dibulatkan 2 desimal)
+            // Hitung total waktu detik dengan 2 desimal
             totalWaktu = parseFloat(((end - start) / 1000).toFixed(2));
-            document.getElementById("totalWaktu").innerHTML = totalWaktu + " Detik";
+            totalWaktuEl.innerText = totalWaktu + "s";
             
-            // Jalankan logika perbarui top score
             setTopscore();
-            
-            setTimeout(function() { alert("Selesai! Waktu kamu: " + totalWaktu + " detik."); }, 100);
+
+            setTimeout(function() { 
+                alert("🎉 Selamat! Kamu menyelesaikan game dalam " + totalWaktu + " detik!"); 
+            }, 200);
         }
-    }
+    };
 
-    function sembunyikanGambar() {
-        document.getElementById("bird").style.display = "none";
-    }
-
-    // FUNGSI UTAMA UNTUK UPDATE AUTOMATIS
     function setTopscore() {
-        var topScoreLama = localStorage.getItem("topScore");
+        let topScoreLama = localStorage.getItem("topScore");
 
-        // Jika belum ada rekor ATAU totalWaktu baru lebih kecil (lebih cepat)
         if (topScoreLama === null || totalWaktu < parseFloat(topScoreLama)) {
-            // Simpan nilai baru ke localStorage
             localStorage.setItem("topScore", totalWaktu);
-            
-            // Langsung ganti teks di layar saat itu juga
-            document.getElementById("topScore").innerHTML = totalWaktu + " Detik";
+            topScoreEl.innerText = totalWaktu + " Detik";
         }
     }
 </script>
