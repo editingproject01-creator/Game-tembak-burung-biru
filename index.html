@@ -196,4 +196,74 @@
     function mulaiGameUlang() {
         counter = 0;
         gameAktif = true;
-        totalWaktuEl.innerText
+        totalWaktuEl.innerText = "0s";
+        targetCountEl.innerText = `0 / ${maxTarget}`;
+        tampilkanGambar();
+    }
+
+    function tampilkanGambar() {
+        if (!gameAktif) return;
+
+        birdElement.src = "bird.png";
+        birdElement.classList.remove("explode");
+
+        // Ukuran burung disesuaikan agar pas di layar HP
+        const birdSize = 55;
+        birdElement.style.width = birdSize + "px";
+        birdElement.style.height = birdSize + "px";
+
+        // Hitung area batas acak secara presisi berdasarkan ukuran arena terkini
+        let containerWidth = container.clientWidth - birdSize - 10;
+        let containerHeight = container.clientHeight - birdSize - 10;
+
+        let top = Math.max(5, Math.random() * containerHeight);
+        let left = Math.max(5, Math.random() * containerWidth);
+        
+        if (counter === 0) {
+            start = new Date().getTime();
+        }
+        
+        birdElement.style.top = top + "px";
+        birdElement.style.left = left + "px";
+        birdElement.style.display = "block";
+    }
+
+    // Menggunakan pointerdown agar sangat responsif di layar sentuh (tanpa delay tap 300ms)
+    birdElement.addEventListener("pointerdown", function (e) {
+        e.preventDefault(); // Mencegah zoom/scroll tidak sengaja
+        if (!gameAktif) return;
+
+        birdElement.src = "bom.png";
+        birdElement.classList.add("explode");
+
+        counter++;
+        targetCountEl.innerText = `${counter} / ${maxTarget}`;
+
+        if (counter < maxTarget) {
+            setTimeout(tampilkanGambar, 300);
+        } else {
+            gameAktif = false;
+            end = new Date().getTime();
+            
+            totalWaktu = parseFloat(((end - start) / 1000).toFixed(2));
+            totalWaktuEl.innerText = totalWaktu + "s";
+            
+            setTopscore();
+
+            setTimeout(function() { 
+                alert("🎉 Selesai! Waktu kamu: " + totalWaktu + " detik."); 
+            }, 150);
+        }
+    });
+
+    function setTopscore() {
+        let topScoreLama = localStorage.getItem("topScore");
+
+        if (topScoreLama === null || totalWaktu < parseFloat(topScoreLama)) {
+            localStorage.setItem("topScore", totalWaktu);
+            topScoreEl.innerText = totalWaktu + "s";
+        }
+    }
+</script>
+</body>
+</html>
