@@ -2,7 +2,8 @@
 <html lang="id">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <!-- Viewport disesuaikan agar tidak bisa di-zoom tidak sengaja saat tap cepat -->
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>Game Tembak Burung Modern</title>
 
     <style>
@@ -10,7 +11,7 @@
             --primary-color: #4ECDC4;
             --accent-color: #FF6B6B;
             --bg-color: #1A1A2E;
-            --card-bg: rgba(255, 255, 255, 0.1);
+            --card-bg: rgba(255, 255, 255, 0.12);
         }
 
         * {
@@ -18,95 +19,104 @@
             margin: 0;
             padding: 0;
             user-select: none;
+            -webkit-user-select: none;
+            -webkit-tap-highlight-color: transparent; /* Hilangkan highlight tap di HP */
         }
 
         body {
-            font-family: 'Poppins', 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Poppins', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
             background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
-            min-height: 100vh;
+            height: 100vh;
+            height: 100dvh; /* Menggunakan dynamic viewport height untuk iOS Safari */
             display: flex;
             flex-direction: column;
             align-items: center;
+            justify-content: flex-start; /* Posisi elemen rapat ke atas */
             color: #fff;
             overflow: hidden;
+            padding: 10px 15px;
         }
 
         header {
-            margin-top: 20px;
+            margin-top: 5px; /* Dinaikkan ke atas */
             text-align: center;
+            width: 100%;
+            max-width: 600px;
         }
 
         h1 {
-            font-size: 2.2rem;
-            letter-spacing: 1.5px;
+            font-size: 1.5rem; /* Ukuran font disesuaikan untuk layar HP */
+            letter-spacing: 1px;
             text-shadow: 0 4px 10px rgba(0,0,0,0.3);
-            margin-bottom: 15px;
+            margin-bottom: 8px;
             color: #FFE66D;
         }
 
-        /* Dashboard Skor */
+        /* Dashboard Skor Compact */
         .scoreboard {
             display: flex;
-            gap: 20px;
+            justify-content: space-around;
+            align-items: center;
             background: var(--card-bg);
-            padding: 12px 25px;
-            border-radius: 50px;
+            padding: 8px 15px;
+            border-radius: 30px;
             backdrop-filter: blur(10px);
-            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.3);
+            -webkit-backdrop-filter: blur(10px);
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.25);
             border: 1px solid rgba(255, 255, 255, 0.18);
+            width: 100%;
         }
 
         .score-box {
-            font-size: 1rem;
+            font-size: 0.85rem;
             font-weight: 600;
         }
 
         .score-box span {
             color: var(--primary-color);
-            font-size: 1.1rem;
+            font-size: 0.95rem;
+            display: block;
         }
 
-        /* Area Arena Permainan */
+        /* Area Arena Permainan (Dinaikkan & Disesuaikan untuk HP) */
         #game-container {
             position: relative;
-            width: 90vw;
-            max-width: 700px;
-            height: 60vh;
-            max-height: 500px;
-            margin-top: 25px;
+            width: 100%;
+            max-width: 600px;
+            height: 52vh; /* Mengurangi tinggi agar naik ±100px */
+            max-height: 420px;
+            margin-top: 10px; /* Jarak dibuat sangat ringkas */
             background: rgba(255, 255, 255, 0.05);
-            border-radius: 20px;
+            border-radius: 16px;
             border: 2px dashed rgba(255, 255, 255, 0.2);
             overflow: hidden;
-            box-shadow: inset 0 0 20px rgba(0,0,0,0.5);
-            cursor: crosshair; /* Kursor berbentuk pembidik */
+            box-shadow: inset 0 0 15px rgba(0,0,0,0.5);
+            cursor: crosshair;
+            touch-action: none; /* Mencegah geser layar tak sengaja saat main di HP */
         }
 
         /* Styling Karakter Burung */
         #bird {
             position: absolute;
-            width: 65px;
-            height: 65px;
+            width: 55px;
+            height: 55px;
             object-fit: contain;
             cursor: pointer;
             transition: transform 0.1s ease;
-            filter: drop-shadow(0 5px 5px rgba(0,0,0,0.4));
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.4));
             display: none;
-        }
-
-        #bird:hover {
-            transform: scale(1.1);
+            touch-action: manipulation;
         }
 
         #bird:active {
-            transform: scale(0.9);
+            transform: scale(0.85);
         }
 
-        /* Tombol Main / Reset */
+        /* Tombol Main / Reset (Dinaikkan) */
         .btn-restart {
-            margin-top: 20px;
-            padding: 12px 30px;
-            font-size: 1rem;
+            margin-top: 12px; /* Posisi lebih naik ke atas */
+            padding: 10px 24px;
+            font-size: 0.95rem;
             font-weight: bold;
             color: #fff;
             background: linear-gradient(45deg, #FF6B6B, #FF8E53);
@@ -114,23 +124,29 @@
             border-radius: 25px;
             cursor: pointer;
             box-shadow: 0 4px 15px rgba(255, 107, 107, 0.4);
-            transition: all 0.3s ease;
+            transition: all 0.2s ease;
         }
 
-        .btn-restart:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 6px 20px rgba(255, 107, 107, 0.6);
+        .btn-restart:active {
+            transform: scale(0.95);
         }
 
         /* Animasi Efek Meledak */
         .explode {
-            animation: pop 0.3s ease-out forwards;
+            animation: pop 0.25s ease-out forwards;
         }
 
         @keyframes pop {
             0% { transform: scale(1); opacity: 1; }
-            50% { transform: scale(1.4); }
-            100% { transform: scale(1.6); opacity: 0; }
+            50% { transform: scale(1.3); }
+            100% { transform: scale(1.5); opacity: 0; }
+        }
+
+        /* Media Query Khusus Layar Sangat Kecil / Layar HP Pendek */
+        @media (max-height: 650px) {
+            h1 { font-size: 1.2rem; margin-bottom: 4px; }
+            #game-container { height: 45vh; }
+            .btn-restart { margin-top: 8px; padding: 8px 20px; font-size: 0.85rem; }
         }
     </style>
 </head>
@@ -139,13 +155,12 @@
     <header>
         <h1>🎯 Game Tembak Burung</h1>
         <div class="scoreboard">
-            <div class="score-box">Target: <span id="targetCount">0 / 5</span></div>
-            <div class="score-box">Top Score: <span id="topScore">-</span></div>
-            <div class="score-box">Waktu: <span id="totalWaktu">0s</span></div>
+            <div class="score-box">Target<span id="targetCount">0 / 5</span></div>
+            <div class="score-box">Top Score<span id="topScore">-</span></div>
+            <div class="score-box">Waktu<span id="totalWaktu">0s</span></div>
         </div>
     </header>
 
-    <!-- Container Terpisah untuk Menjaga Respon Sifat Responsif -->
     <div id="game-container">
         <img id="bird" alt="Target Burung">
     </div>
@@ -166,15 +181,13 @@
     const totalWaktuEl = document.getElementById("totalWaktu");
     const targetCountEl = document.getElementById("targetCount");
 
-    // Muat Top Score saat halaman pertama dimuat
     tampilkanTopScore();
-    // Mulai permainan otomatis
     mulaiGameUlang();
 
     function tampilkanTopScore() {
         let savedScore = localStorage.getItem("topScore");
         if (savedScore !== null) {
-            topScoreEl.innerText = savedScore + " Detik";
+            topScoreEl.innerText = savedScore + "s";
         } else {
             topScoreEl.innerText = "-";
         }
@@ -183,74 +196,4 @@
     function mulaiGameUlang() {
         counter = 0;
         gameAktif = true;
-        totalWaktuEl.innerText = "0s";
-        targetCountEl.innerText = `0 / ${maxTarget}`;
-        tampilkanGambar();
-    }
-
-    function tampilkanGambar() {
-        if (!gameAktif) return;
-
-        // Reset tampilan & gambar burung
-        birdElement.src = "bird.png";
-        birdElement.classList.remove("explode");
-        birdElement.style.width = "65px";
-        birdElement.style.height = "65px";
-
-        // Hitung batas posisi agar burung tidak keluar dari container (Sangat Responsif)
-        let containerWidth = container.clientWidth - 70;
-        let containerHeight = container.clientHeight - 70;
-
-        let top = Math.max(10, Math.random() * containerHeight);
-        let left = Math.max(10, Math.random() * containerWidth);
-        
-        // Catat waktu mulai saat ronde pertama
-        if (counter === 0) {
-            start = new Date().getTime();
-        }
-        
-        birdElement.style.top = top + "px";
-        birdElement.style.left = left + "px";
-        birdElement.style.display = "block";
-    }
-
-    // Event ketika burung diklik/ditembak
-    birdElement.onclick = function () {
-        if (!gameAktif) return;
-
-        // Efek tembak/bom
-        birdElement.src = "bom.png";
-        birdElement.classList.add("explode");
-
-        counter++;
-        targetCountEl.innerText = `${counter} / ${maxTarget}`;
-
-        if (counter < maxTarget) {
-            setTimeout(tampilkanGambar, 400);
-        } else {
-            gameAktif = false;
-            end = new Date().getTime();
-            
-            // Hitung total waktu detik dengan 2 desimal
-            totalWaktu = parseFloat(((end - start) / 1000).toFixed(2));
-            totalWaktuEl.innerText = totalWaktu + "s";
-            
-            setTopscore();
-
-            setTimeout(function() { 
-                alert("🎉 Selamat! Kamu menyelesaikan game dalam " + totalWaktu + " detik!"); 
-            }, 200);
-        }
-    };
-
-    function setTopscore() {
-        let topScoreLama = localStorage.getItem("topScore");
-
-        if (topScoreLama === null || totalWaktu < parseFloat(topScoreLama)) {
-            localStorage.setItem("topScore", totalWaktu);
-            topScoreEl.innerText = totalWaktu + " Detik";
-        }
-    }
-</script>
-</body>
-</html>
+        totalWaktuEl.innerText
